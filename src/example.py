@@ -21,7 +21,7 @@ def setup_mdp():
     # set up the reward function
     reward = np.zeros(world.n_states)
     reward[-1] = 1.0
-    reward[8] = 0.65
+    reward[8] = 0.25
 
     # set up terminal states
     terminal = [24]
@@ -41,6 +41,7 @@ def generate_trajectories(world, reward, terminal):
     # set up initial probabilities for trajectory generation
     initial = np.zeros(world.n_states)
     initial[0] = 1.0
+    
 
     # generate trajectories
     value = S.value_iteration(world.p_transition, reward, discount)
@@ -102,40 +103,49 @@ def main():
     # set-up mdp
     world, reward, terminal = setup_mdp()
 
-    # show our original reward
-    ax = plt.figure(num='Original Reward').add_subplot(111)
-    P.plot_state_values(ax, world, reward, **style)
-    plt.draw()
-
-    # generate "expert" trajectories
+    plt.figure(figsize=(20, 10))
+    plt.subplot(1, 2, 1)
+    plt.pcolor(reward.reshape((world.size, world.size)))
+    plt.colorbar()
+    
     trajectories, expert_policy = generate_trajectories(world, reward, terminal)
+    reward_maxentcausal = maxent_causal(world, terminal, trajectories)
+    plt.subplot(1, 2, 2)
+    plt.pcolor(reward_maxentcausal.reshape((world.size, world.size)))
+    plt.colorbar()
+    
+    plt.savefig('result.png')
+    
+    # # show our original reward
+    # ax = plt.figure(num='Original Reward').add_subplot(111)
+    # P.plot_state_values(ax, world, reward, **style)
+    # plt.savefig('figures/original_reward.png')
 
-    # show our expert policies
-    ax = plt.figure(num='Expert Trajectories and Policy').add_subplot(111)
-    P.plot_stochastic_policy(ax, world, expert_policy, **style)
+    # # generate "expert" trajectories
+    # trajectories, expert_policy = generate_trajectories(world, reward, terminal)
 
-    for t in trajectories:
-        P.plot_trajectory(ax, world, t, lw=5, color='white', alpha=0.025)
+    # # show our expert policies
+    # ax = plt.figure(num='Expert Trajectories and Policy').add_subplot(111)
+    # P.plot_stochastic_policy(ax, world, expert_policy, **style)
+    # # for t in trajectories:
+    #     # P.plot_trajectory(ax, world, t, lw=5, color='white', alpha=0.025)
+    # plt.savefig('figures/expert_traj_and_policy.png')
 
-    plt.draw()
+    # # maximum entropy reinforcement learning (non-causal)
+    # reward_maxent = maxent(world, terminal, trajectories)
 
-    # maximum entropy reinforcement learning (non-causal)
-    reward_maxent = maxent(world, terminal, trajectories)
+    # # show the computed reward
+    # ax = plt.figure(num='MaxEnt Reward').add_subplot(111)
+    # P.plot_state_values(ax, world, reward_maxent, **style)
+    # plt.savefig('figures/max_ent_reward.png')
 
-    # show the computed reward
-    ax = plt.figure(num='MaxEnt Reward').add_subplot(111)
-    P.plot_state_values(ax, world, reward_maxent, **style)
-    plt.draw()
+    # # maximum casal entropy reinforcement learning (non-causal)
+    # reward_maxcausal = maxent_causal(world, terminal, trajectories)
 
-    # maximum casal entropy reinforcement learning (non-causal)
-    reward_maxcausal = maxent_causal(world, terminal, trajectories)
-
-    # show the computed reward
-    ax = plt.figure(num='MaxEnt Reward (Causal)').add_subplot(111)
-    P.plot_state_values(ax, world, reward_maxcausal, **style)
-    plt.draw()
-
-    plt.show()
+    # # show the computed reward
+    # ax = plt.figure(num='MaxEnt Reward (Causal)').add_subplot(111)
+    # P.plot_state_values(ax, world, reward_maxcausal, **style)
+    # plt.savefig('figures/max_ent_causal_reward.png')
 
 
 if __name__ == '__main__':
